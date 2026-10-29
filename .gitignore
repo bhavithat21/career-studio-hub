@@ -147,3 +147,39 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+
+# Career Studio workspace protections
+# Separate legacy repository: preserve its own Git history.
+/career-studio/
+
+# Private documents, screenshots, migration exports, and portable backups.
+/output/
+/tmp/
+**/private/
+**/private-assets/
+**/privateassets/
+
+# Credentials and machine-local state must never travel with source.
+.env*
+.dev.vars*
+*.pem
+*.key
+*.p12
+*.pfx
+**/.deployment-tools/
+**/.vercel/
+**/.sites-runtime/
+**/.wrangler/
+**/.agents/
+**/.codex/
+
+# Reinstall dependencies and regenerate build artifacts in the new checkout.
+**/node_modules/
+**/.next/
+**/dist/
+**/coverage/
+*.tsbuildinfo
+*.log
+.DS_Store
+Thumbs.db

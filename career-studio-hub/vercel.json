@@ -1,0 +1,28 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": "nextjs",
+  "installCommand": "npm ci",
+  "buildCommand": "npm run build",
+  "functions": {
+    "app/api/queues/discovery/route.ts": {
+      "maxDuration": 300,
+      "experimentalTriggers": [
+        {
+          "type": "queue/v2beta",
+          "topic": "career-studio-discovery",
+          "retryAfterSeconds": 60,
+          "maxDeliveries": 5
+        }
+      ]
+    },
+    "app/api/**/*.ts": {
+      "maxDuration": 300
+    }
+  },
+  "crons": [
+    {
+      "path": "/api/maintenance",
+      "schedule": "15 15 * * *"
+    }
+  ]
+}

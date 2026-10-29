@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {parseResume,baseEditable,validateEdits,defaultRules,metricFlags,assemble} from '../lib/resume-model.ts';
+import {renderResume} from '../lib/resume-pdf.ts';
+const master=`TEST CANDIDATE\nSeattle | test@example.com\nPROFESSIONAL SUMMARY\nSoftware engineer building reliable systems.\nTECHNICAL SKILLS\nJava, Python, AWS\nPROFESSIONAL EXPERIENCE\nSoftware Engineer - Example Company Jan 2020 - Present\n- Built Java services improving latency 30%.\n- Operated production systems with automated tests.\nTECHNICAL PROJECTS\nExample project | Python\n- Built a document search service.\nEDUCATION\nBS Computer Science - Example University 2016 - 2020`;
+const model=parseResume(master);
+test('locked career history is preserved in assembly',()=>{const e=baseEditable(model);e.summary='Engineer delivering Java backend services.';const text=assemble(model,validateEdits(model,e,defaultRules));assert.ok(text.includes(model.roles[0].header));assert.ok(text.includes(model.education));});
+test('attempts to supply locked fields are rejected',()=>assert.throws(()=>validateEdits(model,{...baseEditable(model),education:'invented'},defaultRules),/Locked fields/));
+test('disabled editable sections are enforced server-side',()=>{const e=baseEditable(model);e.summary='Changed summary';assert.throws(()=>validateEdits(model,e,{...defaultRules,summary:false}),/Summary is locked/);});
+test('employment entries cannot be deleted or reassigned',()=>{const e=baseEditable(model);e.responsibilities=[];assert.throws(()=>validateEdits(model,e,defaultRules),/Every original/);});
+test('new numbers are flagged while existing evidence is accepted',()=>{const e=baseEditable(model);assert.deepEqual(metricFlags(model,e),[]);e.summary='Reduced latency 99%.';assert.ok(metricFlags(model,e).some(f=>f.includes('99%')));});
+test('one-page PDF is generated and overflow is rejected',async()=>{const r=await renderResume(model,baseEditable(model));assert.equal(r.layout.pages,1);assert.equal(r.layout.passed,true);assert.ok(r.bytes.length>1000);const e=baseEditable(model);e.summary='Evidence paragraph '.repeat(2000);await assert.rejects(()=>renderResume(model,e),/exceeds one page/);});

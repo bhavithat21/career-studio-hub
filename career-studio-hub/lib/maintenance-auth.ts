@@ -1,0 +1,2 @@
+import {createHash,timingSafeEqual} from 'node:crypto';
+export function cronAuthorized(req:Request,secret=process.env.CRON_SECRET){if(!secret||secret.length<24)return false;const header=req.headers.get('authorization')||'';if(!header.startsWith('Bearer '))return false;const digest=(value:string)=>createHash('sha256').update(value).digest();return timingSafeEqual(digest(header.slice(7)),digest(secret));}

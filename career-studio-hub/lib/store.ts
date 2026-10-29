@@ -1,0 +1,15 @@
+import {getDb} from '../db';
+import {requireTenantId,tenantLeaseOwners} from './tenant';
+const recordKey=(value:string,empty=false)=>{if(typeof value!=='string'||(!empty&&!value)||value.length>4096||value.includes('\0'))throw Error('Invalid record key.');return value;};
+async function query(sql:string,values:unknown[]){try{return await getDb().query(sql,values);}catch{throw Error('Online database operation failed. Check database provisioning and schema.');}}
+export async function read<T>(key:string,fallback:T):Promise<T>{const tenantId=requireTenantId();recordKey(key);const result=await query('SELECT value FROM records WHERE tenant_id=$1 AND key=$2',[tenantId,key]);return result.rows[0]?JSON.parse(result.rows[0].value):structuredClone(fallback);}
+export async function write(key:string,value:unknown){const tenantId=requireTenantId();recordKey(key);let encoded:string|undefined;try{encoded=JSON.stringify(value);}catch{throw Error('Record value must be JSON serializable.');}if(encoded===undefined)throw Error('Record value must be JSON serializable.');await query('INSERT INTO records(tenant_id,key,value,updated) VALUES($1,$2,$3,$4) ON CONFLICT(tenant_id,key) DO UPDATE SET value=EXCLUDED.value,updated=EXCLUDED.updated',[tenantId,key,encoded,new Date().toISOString()]);}
+export async function list<T>(prefix:string):Promise<T[]>{const tenantId=requireTenantId();recordKey(prefix,true);const result=await query('SELECT value FROM records WHERE tenant_id=$1 AND left(key,char_length($2))=$2 ORDER BY updated DESC',[tenantId,prefix]);return result.rows.map((row:{value:string})=>JSON.parse(row.value));}
+export async function claim(key:string,ms=120000){
+ const tenantId=requireTenantId();recordKey(key);if(!Number.isFinite(ms)||ms<1||ms>900000)throw Error('Invalid lock duration.');const owner=crypto.randomUUID(),now=Date.now(),encoded=JSON.stringify({leaseOwner:owner});
+ // One conditional upsert is atomic across independent server instances.
+ const result=await query('INSERT INTO records(tenant_id,key,value,updated) VALUES($1,$2,$3,$4) ON CONFLICT(tenant_id,key) DO UPDATE SET value=EXCLUDED.value,updated=EXCLUDED.updated WHERE records.updated < $5 RETURNING key',[tenantId,key,encoded,new Date(now).toISOString(),new Date(now-ms).toISOString()]);const acquired=result.rows.length===1;if(acquired)tenantLeaseOwners().set(key,encoded);return acquired;
+}
+export async function unlock(key:string){const tenantId=requireTenantId();recordKey(key);const owners=tenantLeaseOwners(),owner=owners.get(key);if(!owner)return;await query('DELETE FROM records WHERE tenant_id=$1 AND key=$2 AND value=$3',[tenantId,key,owner]);owners.delete(key);}
+export async function remove(key:string){const tenantId=requireTenantId();recordKey(key);await query('DELETE FROM records WHERE tenant_id=$1 AND key=$2',[tenantId,key]);}
+export async function removePrefix(prefix:string){const tenantId=requireTenantId();recordKey(prefix);await query('DELETE FROM records WHERE tenant_id=$1 AND left(key,char_length($2))=$2',[tenantId,prefix]);}
