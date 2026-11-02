@@ -7,6 +7,7 @@ import * as reviewValidation from '../lib/review-validation.ts';
 import * as evidenceTailoring from '../lib/evidence-tailoring.ts';
 import * as applicationPacket from '../lib/application-packet.ts';
 import * as matching from '../lib/matching.ts';
+import * as resumePrompt from '../lib/resume-prompt.ts';
 
 const source=await fs.readFile(new URL('../lib/resume-optimization.ts',import.meta.url),'utf8');
 const compiled=ts.transpileModule(source,{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.CommonJS}}).outputText;
@@ -57,7 +58,7 @@ function harness({hasKey=true,proposal=selection(),review=positiveReview,prior=n
   }finally{await store.unlock(lock);}
  }};
  const http=async(url,options)=>{calls.push({url,body:JSON.parse(options.body)});assert.equal(url,'https://api.anthropic.com/v1/messages');if(duringFetch)await duringFetch({call:calls.length,records,assessment});if(httpStatus!==200)return new Response('private-provider-response-not-for-clients',{status:httpStatus});return Response.json({stop_reason:'end_turn',content:[{type:'text',text:JSON.stringify(calls.length===1?proposal:review)}]});};
- const dependencies={'./ai-provider':{claudeInferenceOptions:()=>({})},'./runtime':{env:hasKey?{ANTHROPIC_API_KEY:'unit-test-placeholder-not-a-real-key'}:{}},'./store':store,'./resume-model':resumeModel,'./review-validation':reviewValidation,'./evidence-tailoring':evidenceTailoring,'./versions':versions,'./resume-scoring':{getResumeScore:async()=>clone(assessment)},'./application-packet':applicationPacket,'./matching':matching};
+ const dependencies={'./ai-provider':{claudeInferenceOptions:()=>({})},'./runtime':{env:hasKey?{ANTHROPIC_API_KEY:'unit-test-placeholder-not-a-real-key'}:{}},'./store':store,'./resume-model':resumeModel,'./review-validation':reviewValidation,'./evidence-tailoring':evidenceTailoring,'./versions':versions,'./resume-scoring':{getResumeScore:async()=>clone(assessment)},'./application-packet':applicationPacket,'./matching':matching,'./resume-prompt':resumePrompt};
  const module={exports:{}};new Function('require','module','exports','fetch',compiled)(name=>{assert.ok(Object.hasOwn(dependencies,name),'Unexpected infrastructure dependency: '+name);return dependencies[name];},module,module.exports,http);
  return {service:module.exports,records,assessment,locks,calls,saves,get:key=>clone(records.get(key)),set:(key,value)=>records.set(key,clone(value)),get committed(){return committed;},get guardCalls(){return guardCalls;}};
 }

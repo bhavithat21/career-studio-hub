@@ -6,6 +6,7 @@ import {validateEvidenceContent} from './evidence-tailoring';
 import {rules,saveVersion,companyResumeEvidence} from './versions';
 import {getResumeScore} from './resume-scoring';
 import {fingerprint} from './application-packet';
+import {writerStylePrompt} from './resume-prompt';
 import {match} from './matching';
 import {claudeInferenceOptions} from './ai-provider';
 
@@ -85,7 +86,7 @@ export async function optimizeApprovedResume(versionId:string){
  const guard=async()=>{const latest=await current(versionId);if(latest.state!==first.state)throw Error('Resume, master evidence, job, rules, score, company history or approval changed during optimization. No version was saved.');};
  try{
   const catalog=sourceCatalog(first.model),feedback=first.assessment.score;
-  const proposal=await claude(first.modelName,writerPrompt,{masterResume:first.p.resume,sourceCatalog:catalog,currentContent:first.version.content,permissions:first.policy,job:jobSnapshot(first.job),qualitativeFeedback:{missingRequirements:feedback.missingRequirements||[],suggestions:feedback.suggestions||[],learningSuggestions:feedback.learningSuggestions||[]},objective:'One evidence-supported improvement pass. No numeric score target and no guaranteed interview outcome.'},2200,Math.min(40000,deadline-Date.now()));
+  const proposal=await claude(first.modelName,writerPrompt+writerStylePrompt(first.policy.instructions,first.policy.reference),{masterResume:first.p.resume,sourceCatalog:catalog,currentContent:first.version.content,permissions:first.policy,job:jobSnapshot(first.job),qualitativeFeedback:{missingRequirements:feedback.missingRequirements||[],suggestions:feedback.suggestions||[],learningSuggestions:feedback.learningSuggestions||[]},objective:'One evidence-supported improvement pass. No numeric score target and no guaranteed interview outcome.'},2200,Math.min(40000,deadline-Date.now()));
   const edits=resolveSelection(proposal,first.model,first.policy,catalog);
   await guard();
   if(JSON.stringify(edits)===JSON.stringify(first.version.content))return {status:'no_changes',sourceVersionId,message:'Claude selected the current supported content unchanged. No duplicate version or second provider request was created.'};

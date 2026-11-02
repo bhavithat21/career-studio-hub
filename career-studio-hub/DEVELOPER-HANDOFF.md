@@ -20,6 +20,14 @@ Credentials remain in server environments. Never commit keys, OAuth tokens, `.en
 
 Every record/PDF operation requires a verified tenant context. AI may edit only enabled Summary, Skills and Responsibilities sections; companies, titles, dates and education remain locked. Preserve factual evidence, immutable versions, candidate approvals and exact application packets. Record external submission history honestly as candidate-reported unless independently verified.
 
+## Master resume and writing instructions
+
+Use **Master resume** to maintain the candidate's confirmed source: identity/contact lines, exact employer/title/date headings, summary, skill categories, responsibilities under each employer, education and projects. The structured editor and text import use the same `profile.resume`; there is no second career profile to synchronize. Existing career facts are not replaced by the UI upgrade.
+
+Use **Set example format & writing prompt** (or **Resume rules**) for a separate style example and customizable instructions. Both the AI writer and optimizer receive these preferences beneath fixed factual and section-permission rules. The example supplies presentation guidance, never candidate facts. **Preview & copy for ChatGPT** combines the saved master, selected job, instructions and enabled-section permissions; copying does not send the text to ChatGPT or configure an OpenAI key. Claude remains the configured production provider.
+
+Master changes are validated before saving, preserve previous source text in private tenant history, and reject stale edits from another tab. Employment headings remain exact strings to avoid guessing how a title, company, location and date should be split. Unsupported text imports are rejected instead of silently dropping employer lines. A candidate must provide any replacement master or example; do not substitute fabricated details or copy facts from an example.
+
 ## Local commands
 
 Use Node 22. Clone from a directory of your choice and enter the application subfolder:
