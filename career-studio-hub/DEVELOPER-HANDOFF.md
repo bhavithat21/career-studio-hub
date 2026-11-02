@@ -1,6 +1,6 @@
 # Career Studio Hub continuation handoff
 
-Live app: [career-studio-hub.vercel.app](https://career-studio-hub.vercel.app). Last verified READY deployment: `dpl_9MxTnkXYwV1QFyNPs2rc8NUF55ZH`, project `career-studio-hub`. See [HUB-DEPLOYMENT.md](HUB-DEPLOYMENT.md) for the detailed verification record.
+Live app: [career-studio-hub.vercel.app](https://career-studio-hub.vercel.app). Last verified READY deployment: `dpl_CFTUZUpAhvZRo2rW1GXqRUwdXBNn`, project `career-studio-hub`, source commit `720afee5b32e4e87df61b2ffd8dab3a65b685046`. See [HUB-DEPLOYMENT.md](HUB-DEPLOYMENT.md) for the earlier infrastructure and migration verification record.
 
 ## Current working state
 
@@ -27,6 +27,8 @@ Use **Master resume** to maintain the candidate's confirmed source: identity/con
 Use **Set example format & writing prompt** (or **Resume rules**) for a separate style example and customizable instructions. Both the AI writer and optimizer receive these preferences beneath fixed factual and section-permission rules. The example supplies presentation guidance, never candidate facts. **Preview & copy for ChatGPT** combines the saved master, selected job, instructions and enabled-section permissions; copying does not send the text to ChatGPT or configure an OpenAI key. Claude remains the configured production provider.
 
 Master changes are validated before saving, preserve previous source text in private tenant history, and reject stale edits from another tab. Employment headings remain exact strings to avoid guessing how a title, company, location and date should be split. Unsupported text imports are rejected instead of silently dropping employer lines. A candidate must provide any replacement master or example; do not substitute fabricated details or copy facts from an example.
+
+November 1, 2026 release verification: 102 tests and TypeScript checks passed; Vercel built successfully and the deployment was promoted. Normal signed-in Chrome displayed the existing master with two employment entries, seven skill categories and ten responsibility bullets. The writing prompt was saved and survived reload; a selected-job ChatGPT preview included the master and saved instructions. Anonymous `/api/workspace` returned 401. No replacement master or example has been supplied yet, and no candidate career facts were changed during this release. The temporary protected-deployment share-link check was blocked by automatic approval review; no share link was created, and verification completed through the existing public address and normal app sign-in.
 
 ## Local commands
 
